@@ -6,6 +6,9 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
+// Spectator mode: hide all controls, audience can only watch
+const isSpectator = new URLSearchParams(window.location.search).get('spectator') === '1'
+
 // Components
 import SplashLayer from './components/SplashLayer.vue'
 import GameCanvas from './components/game/GameCanvas.vue'
@@ -81,11 +84,11 @@ const {
 
 // 3. 胶水逻辑：连接 Init 和 Control
 
-// 当检测到 idle 状态时，执行启动检查
+// 当检测到 idle 状态时，执行启动检查（旁观者模式下跳过，不干涉游戏）
 watch(initStatus, (newVal, oldVal) => {
   // Idle check
   if (newVal?.status === 'idle' && oldVal?.status !== 'idle') {
-    if (!showMenu.value) {
+    if (!showMenu.value && !isSpectator) {
       performStartupCheck()
     }
   }
@@ -201,25 +204,31 @@ onUnmounted(() => {
 <template>
   <n-config-provider :theme="darkTheme">
     <n-message-provider>
-      <SplashLayer 
-        v-if="showSplash" 
+      <!-- Splash 仅管理员可见 -->
+      <SplashLayer
+        v-if="showSplash && !isSpectator"
         @action="handleSplashAction"
       />
-      
+
       <!-- Loading Overlay - 盖在游戏上面 -->
-      <LoadingOverlay 
-        v-if="!showSplash && showLoading"
+      <LoadingOverlay
+        v-if="(isSpectator || !showSplash) && showLoading"
         :status="initStatus"
       />
 
-      <!-- Game UI - 始终渲染 -->
-      <div v-if="!showSplash" class="app-layout">
+      <!-- Spectator waiting screen: game not started yet -->
+      <div v-if="isSpectator && !showLoading && initStatus?.status === 'idle'" class="spectator-waiting">
+        <div class="spectator-waiting-text">等待游戏开始...</div>
+      </div>
+
+      <!-- Game UI -->
+      <div v-if="isSpectator ? (!showLoading && initStatus?.status !== 'idle') : !showSplash" class="app-layout">
         <StatusBar />
-        
+
         <div class="main-content">
           <div class="map-container">
-            <!-- 顶部控制栏 -->
-            <div class="top-controls">
+            <!-- 顶部控制栏：旁观者模式下隐藏 -->
+            <div v-if="!isSpectator" class="top-controls">
               <!-- 暂停/播放按钮 -->
               <button class="control-btn pause-toggle" @click="toggleManualPause" :title="isManualPaused ? t('game.controls.resume') : t('game.controls.pause')">
                 <!-- 播放图标 (当暂停时显示) -->
@@ -238,6 +247,11 @@ onUnmounted(() => {
                   <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
                 </svg>
               </button>
+            </div>
+
+            <!-- 旁观者 LIVE 标志 -->
+            <div v-if="isSpectator" class="spectator-badge">
+              <span class="live-dot"></span>LIVE
             </div>
 
             <!-- 暂停状态提示 -->
@@ -262,7 +276,9 @@ onUnmounted(() => {
           </aside>
         </div>
 
-        <SystemMenu 
+        <!-- SystemMenu：旁观者模式下不渲染 -->
+        <SystemMenu
+          v-if="!isSpectator"
           :visible="showMenu"
           :default-tab="menuDefaultTab"
           :game-initialized="gameInitialized"
@@ -372,5 +388,52 @@ onUnmounted(() => {
   flex-direction: column;
   z-index: 20;
   flex-shrink: 0;
+}
+
+/* Spectator mode */
+.spectator-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 60, 60, 0.5);
+  color: #ff4444;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff4444;
+  border-radius: 50%;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.spectator-waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: #888;
+  font-size: 18px;
+  letter-spacing: 2px;
 }
 </style>
