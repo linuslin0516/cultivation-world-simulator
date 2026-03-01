@@ -73,10 +73,15 @@ class LLMAI(AI):
 
         # 直接并发所有任务
         tasks = [decide_one(avatar) for avatar in avatars_to_decide]
-        results_list = await asyncio.gather(*tasks)
-        
+        results_list = await asyncio.gather(*tasks, return_exceptions=True)
+
         results: dict[Avatar, tuple[ACTION_NAME_PARAMS_PAIRS, str, str]] = {}
-        for avatar, res in results_list:
+        for result in results_list:
+            if isinstance(result, Exception):
+                import logging
+                logging.getLogger(__name__).error(f"LLM decision failed: {result}")
+                continue
+            avatar, res = result
             if not res or avatar.name not in res:
                 continue
                 

@@ -67,7 +67,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
-from src.server import main
+from src.server import main, game_loop
 from src.server.main import (
     app,
     game_instance,
@@ -160,14 +160,14 @@ class TestInitGameAsyncSuccess:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {"sect1": MagicMock()}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {"sect1": MagicMock()}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 1
@@ -203,15 +203,15 @@ class TestInitGameAsyncSuccess:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "update_init_progress", side_effect=tracking_update), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "update_init_progress", side_effect=tracking_update), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -241,15 +241,15 @@ class TestInitGameAsyncWithHistory:
         mock_history_mgr = MagicMock()
         mock_history_mgr.apply_history_influence = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.HistoryManager", return_value=mock_history_mgr) as mock_hm_class, \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.HistoryManager", return_value=mock_history_mgr) as mock_hm_class, \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -277,15 +277,15 @@ class TestInitGameAsyncWithHistory:
         mock_history_mgr = MagicMock()
         mock_history_mgr.apply_history_influence = AsyncMock(side_effect=Exception("History failed"))
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.HistoryManager", return_value=mock_history_mgr), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.HistoryManager", return_value=mock_history_mgr), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -313,14 +313,14 @@ class TestInitGameAsyncWithLLMFailure:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(False, "API key invalid")), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(False, "API key invalid")), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -355,15 +355,15 @@ class TestInitGameAsyncWithAvatars:
 
         mock_avatars = {"npc1": MagicMock(), "npc2": MagicMock(), "npc3": MagicMock()}
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value=mock_avatars), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value=mock_avatars), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -390,15 +390,15 @@ class TestInitGameAsyncWithAvatars:
 
         mock_protagonists = {"prot1": MagicMock(), "prot2": MagicMock()}
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_prot_utils.spawn_protagonists.return_value = mock_protagonists
             mock_config.paths.saves = temp_saves_dir
@@ -422,10 +422,10 @@ class TestInitGameAsyncErrors:
     @pytest.mark.asyncio
     async def test_init_handles_map_load_error(self, reset_game_instance, temp_saves_dir, mock_llm_managers):
         """Test that map loading error sets error status."""
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", side_effect=Exception("Map file not found")), \
-             patch("src.server.main.CONFIG") as mock_config:
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", side_effect=Exception("Map file not found")), \
+             patch("src.server.game_loop.CONFIG") as mock_config:
 
             mock_config.paths.saves = temp_saves_dir
 
@@ -437,9 +437,9 @@ class TestInitGameAsyncErrors:
     @pytest.mark.asyncio
     async def test_init_handles_asset_scan_error(self, reset_game_instance, temp_saves_dir, mock_llm_managers):
         """Test that asset scanning error sets error status."""
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets", side_effect=Exception("Asset scan failed")), \
-             patch("src.server.main.CONFIG") as mock_config:
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets", side_effect=Exception("Asset scan failed")), \
+             patch("src.server.game_loop.CONFIG") as mock_config:
 
             mock_config.paths.saves = temp_saves_dir
 
@@ -457,14 +457,14 @@ class TestInitGameAsyncErrors:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock(side_effect=Exception("Event generation failed"))
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -498,15 +498,15 @@ class TestInitGameAsyncWithSects:
         mock_sect2 = MagicMock()
         mock_sect3 = MagicMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {
                  "s1": mock_sect1,
                  "s2": mock_sect2,
                  "s3": mock_sect3,
@@ -542,16 +542,16 @@ class TestInitGameAsyncEdgeCases:
 
         mock_protagonists = {"prot1": MagicMock()}
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_prot_utils.spawn_protagonists.return_value = mock_protagonists
             mock_config.paths.saves = temp_saves_dir
@@ -577,16 +577,16 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random") as mock_make_random, \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random") as mock_make_random, \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_prot_utils.spawn_protagonists.return_value = {"p1": MagicMock()}
             mock_config.paths.saves = temp_saves_dir
@@ -614,16 +614,16 @@ class TestInitGameAsyncEdgeCases:
         # Spawn 3 protagonists.
         mock_protagonists = {"p1": MagicMock(), "p2": MagicMock(), "p3": MagicMock()}
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_prot_utils.spawn_protagonists.return_value = mock_protagonists
             mock_config.paths.saves = temp_saves_dir
@@ -649,15 +649,15 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):  # Empty sects.
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):  # Empty sects.
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 5  # Request 5 sects, but none available.
@@ -687,15 +687,15 @@ class TestInitGameAsyncEdgeCases:
         mock_sect1 = MagicMock()
         mock_sect2 = MagicMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {"s1": mock_sect1, "s2": mock_sect2}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {"s1": mock_sect1, "s2": mock_sect2}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 10  # Request 10, only 2 available.
@@ -715,11 +715,11 @@ class TestInitGameAsyncEdgeCases:
         """Test that World.create_with_db failure sets error status."""
         mock_map = MagicMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.CONFIG") as mock_config:
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.CONFIG") as mock_config:
 
             mock_world_class.create_with_db.side_effect = Exception("Database connection failed")
             mock_config.paths.saves = temp_saves_dir
@@ -739,16 +739,16 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -772,16 +772,16 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.HistoryManager") as mock_history_manager, \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.HistoryManager") as mock_history_manager, \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -807,16 +807,16 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.HistoryManager") as mock_history_manager, \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.HistoryManager") as mock_history_manager, \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -837,12 +837,12 @@ class TestInitGameAsyncEdgeCases:
         mock_map = MagicMock()
         mock_world = MagicMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator") as mock_sim_class, \
-             patch("src.server.main.CONFIG") as mock_config:
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator") as mock_sim_class, \
+             patch("src.server.game_loop.CONFIG") as mock_config:
 
             mock_world_class.create_with_db.return_value = mock_world
             mock_sim_class.side_effect = Exception("Simulator init failed")
@@ -863,15 +863,15 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -900,15 +900,15 @@ class TestInitGameAsyncEdgeCases:
         import time
         before_init = time.time()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -938,15 +938,15 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}), \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}), \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -963,8 +963,8 @@ class TestInitGameAsyncEdgeCases:
     @pytest.mark.asyncio
     async def test_init_handles_reload_static_data_error(self, reset_game_instance, temp_saves_dir, mock_llm_managers):
         """Test that reload_all_static_data failure sets error status."""
-        with patch.object(main, "reload_all_static_data", side_effect=Exception("Static data corrupted")), \
-             patch("src.server.main.CONFIG") as mock_config:
+        with patch.object(game_loop, "reload_all_static_data", side_effect=Exception("Static data corrupted")), \
+             patch("src.server.game_loop.CONFIG") as mock_config:
 
             mock_config.paths.saves = temp_saves_dir
 
@@ -983,15 +983,15 @@ class TestInitGameAsyncEdgeCases:
         mock_sim = MagicMock()
         mock_sim.step = AsyncMock()
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_config.paths.saves = temp_saves_dir
             mock_config.game.sect_num = 0
@@ -1019,16 +1019,16 @@ class TestInitGameAsyncEdgeCases:
         # Spawn 10 protagonists but target is only 5.
         mock_protagonists = {f"p{i}": MagicMock() for i in range(10)}
 
-        with patch.object(main, "reload_all_static_data"), \
-             patch.object(main, "scan_avatar_assets"), \
-             patch.object(main, "load_cultivation_world_map", return_value=mock_map), \
-             patch.object(main, "check_llm_connectivity", return_value=(True, "")), \
-             patch.object(main, "_new_make_random", return_value={}) as mock_make_random, \
-             patch("src.server.main.prot_utils") as mock_prot_utils, \
-             patch("src.server.main.World") as mock_world_class, \
-             patch("src.server.main.Simulator", return_value=mock_sim), \
-             patch("src.server.main.CONFIG") as mock_config, \
-             patch("src.server.main.sects_by_id", {}):
+        with patch.object(game_loop, "reload_all_static_data"), \
+             patch.object(game_loop, "scan_avatar_assets"), \
+             patch.object(game_loop, "load_cultivation_world_map", return_value=mock_map), \
+             patch.object(game_loop, "check_llm_connectivity", return_value=(True, "")), \
+             patch.object(game_loop, "_new_make_random", return_value={}) as mock_make_random, \
+             patch("src.server.game_loop.prot_utils") as mock_prot_utils, \
+             patch("src.server.game_loop.World") as mock_world_class, \
+             patch("src.server.game_loop.Simulator", return_value=mock_sim), \
+             patch("src.server.game_loop.CONFIG") as mock_config, \
+             patch("src.server.game_loop.sects_by_id", {}):
 
             mock_prot_utils.spawn_protagonists.return_value = mock_protagonists
             mock_config.paths.saves = temp_saves_dir

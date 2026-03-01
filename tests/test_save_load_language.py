@@ -119,14 +119,15 @@ class TestSaveLoadLanguage:
         
         # We patch load_game so we don't need a valid save file structure beyond meta
         # We patch set_language to verify it's called
-        with patch('src.server.main.manager.broadcast', mock_broadcast), \
-             patch('src.server.main.language_manager.set_language') as mock_set_lang, \
-             patch('src.server.main.OmegaConf') as mock_conf, \
+        with patch('src.server.routes.saves.manager.broadcast', mock_broadcast), \
+             patch('src.server.routes.saves.language_manager.set_language') as mock_set_lang, \
+             patch('src.server.routes.saves.OmegaConf') as mock_conf, \
              patch.object(CONFIG.paths, "saves", temp_save_dir), \
-             patch('src.server.main.load_game', return_value=(MagicMock(), MagicMock(), [])), \
-             patch('src.server.main.scan_avatar_assets'):
+             patch('src.server.routes.saves.load_game', return_value=(MagicMock(), MagicMock(), [])), \
+             patch('src.server.routes.saves.scan_avatar_assets'):
             
-            from src.server.main import api_load_game, LoadGameRequest
+            from src.server.routes.saves import api_load_game
+            from src.server.schemas import LoadGameRequest
             
             req = LoadGameRequest(filename=save_filename)
             await api_load_game(req)
@@ -166,13 +167,14 @@ class TestSaveLoadLanguage:
         mock_broadcast = AsyncMock()
         mock_set_lang = MagicMock()
         
-        with patch('src.server.main.manager.broadcast', mock_broadcast), \
-             patch('src.server.main.language_manager.set_language', mock_set_lang), \
+        with patch('src.server.routes.saves.manager.broadcast', mock_broadcast), \
+             patch('src.server.routes.saves.language_manager.set_language', mock_set_lang), \
              patch.object(CONFIG.paths, "saves", temp_save_dir), \
-             patch('src.server.main.load_game', return_value=(MagicMock(), MagicMock(), [])), \
-             patch('src.server.main.scan_avatar_assets'):
+             patch('src.server.routes.saves.load_game', return_value=(MagicMock(), MagicMock(), [])), \
+             patch('src.server.routes.saves.scan_avatar_assets'):
              
-            from src.server.main import api_load_game, LoadGameRequest
+            from src.server.routes.saves import api_load_game
+            from src.server.schemas import LoadGameRequest
             
             req = LoadGameRequest(filename=save_filename)
             await api_load_game(req)

@@ -14,7 +14,7 @@ import time
 from unittest.mock import patch, MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 
-from src.server import main
+from src.server import main, game_loop
 from src.server.main import app, game_instance, update_init_progress, INIT_PHASE_NAMES
 
 
@@ -160,7 +160,7 @@ class TestNewGameEndpoint:
 
     def test_new_game_starts_initialization(self, client, reset_game_instance):
         """Test /api/game/start starts initialization process."""
-        with patch.object(main, 'init_game_async', new_callable=AsyncMock) as mock_init:
+        with patch('src.server.game_loop.init_game_async', new_callable=AsyncMock) as mock_init:
             # Prepare minimal valid request data
             payload = {
                 "init_npc_num": 10,
@@ -200,7 +200,7 @@ class TestNewGameEndpoint:
         game_instance["sim"] = mock_sim
         game_instance["init_status"] = "ready"
         
-        with patch.object(main, 'init_game_async', new_callable=AsyncMock):
+        with patch('src.server.game_loop.init_game_async', new_callable=AsyncMock):
             payload = {
                 "init_npc_num": 10,
                 "sect_num": 2,
@@ -226,7 +226,7 @@ class TestReinitEndpoint:
         game_instance["init_phase"] = 4
         game_instance["init_progress"] = 50
         
-        with patch.object(main, 'init_game_async', new_callable=AsyncMock):
+        with patch('src.server.game_loop.init_game_async', new_callable=AsyncMock):
             response = client.post("/api/control/reinit")
             
             assert response.status_code == 200
@@ -239,7 +239,7 @@ class TestReinitEndpoint:
 
     def test_reinit_starts_new_initialization(self, client, reset_game_instance):
         """Test /api/control/reinit starts new initialization task."""
-        with patch.object(main, 'init_game_async', new_callable=AsyncMock) as mock_init:
+        with patch('src.server.game_loop.init_game_async', new_callable=AsyncMock) as mock_init:
             response = client.post("/api/control/reinit")
             
             assert response.status_code == 200
@@ -295,11 +295,11 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_sets_status_to_in_progress(self, reset_game_instance, mock_llm_managers):
         """Test initialization sets status to in_progress immediately."""
-        with patch.object(main, 'scan_avatar_assets'), \
-             patch.object(main, 'load_cultivation_world_map') as mock_load_map, \
-             patch.object(main, 'check_llm_connectivity', return_value=(True, "")), \
-             patch('src.server.main.World') as mock_world_class, \
-             patch('src.server.main.Simulator') as mock_sim_class:
+        with patch.object(game_loop, 'scan_avatar_assets'), \
+             patch.object(game_loop, 'load_cultivation_world_map') as mock_load_map, \
+             patch.object(game_loop, 'check_llm_connectivity', return_value=(True, "")), \
+             patch('src.server.game_loop.World') as mock_world_class, \
+             patch('src.server.game_loop.Simulator') as mock_sim_class:
             
             mock_map = MagicMock()
             mock_load_map.return_value = mock_map
@@ -311,7 +311,7 @@ class TestInitGameAsync:
             mock_sim_class.return_value = mock_sim
             
             # Start init but check status immediately.
-            task = asyncio.create_task(main.init_game_async())
+            task = asyncio.create_task(game_loop.init_game_async())
             await asyncio.sleep(0.01)  # Let it start.
             
             assert game_instance["init_status"] in ["in_progress", "ready"]
@@ -321,8 +321,8 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_error_sets_error_status(self, reset_game_instance, mock_llm_managers):
         """Test initialization error sets status to error."""
-        with patch.object(main, 'scan_avatar_assets', side_effect=Exception("Test error")):
-            await main.init_game_async()
+        with patch.object(game_loop, 'scan_avatar_assets', side_effect=Exception("Test error")):
+            await game_loop.init_game_async()
             
             assert game_instance["init_status"] == "error"
             assert "Test error" in game_instance["init_error"]
@@ -330,13 +330,13 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_completes_with_ready_status(self, reset_game_instance, mock_llm_managers):
         """Test successful initialization sets status to ready."""
-        with patch.object(main, 'scan_avatar_assets'), \
-             patch.object(main, 'load_cultivation_world_map') as mock_load_map, \
-             patch.object(main, 'check_llm_connectivity', return_value=(True, "")), \
-             patch('src.server.main.World') as mock_world_class, \
-             patch('src.server.main.Simulator') as mock_sim_class, \
-             patch('src.server.main.sects_by_id', {}), \
-             patch('src.server.main.CONFIG') as mock_config:
+        with patch.object(game_loop, 'scan_avatar_assets'), \
+             patch.object(game_loop, 'load_cultivation_world_map') as mock_load_map, \
+             patch.object(game_loop, 'check_llm_connectivity', return_value=(True, "")), \
+             patch('src.server.game_loop.World') as mock_world_class, \
+             patch('src.server.game_loop.Simulator') as mock_sim_class, \
+             patch('src.server.game_loop.sects_by_id', {}), \
+             patch('src.server.game_loop.CONFIG') as mock_config:
             
             mock_config.game.sect_num = 0
             mock_config.game.init_npc_num = 0
@@ -351,7 +351,7 @@ class TestInitGameAsync:
             mock_sim.step = AsyncMock()
             mock_sim_class.return_value = mock_sim
             
-            await main.init_game_async()
+            await game_loop.init_game_async()
             
             assert game_instance["init_status"] == "ready"
             assert game_instance["init_progress"] == 100
@@ -359,13 +359,13 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_records_llm_failure(self, reset_game_instance, mock_llm_managers):
         """Test LLM check failure is recorded but doesn't stop initialization."""
-        with patch.object(main, 'scan_avatar_assets'), \
-             patch.object(main, 'load_cultivation_world_map') as mock_load_map, \
-             patch.object(main, 'check_llm_connectivity', return_value=(False, "API key invalid")), \
-             patch('src.server.main.World') as mock_world_class, \
-             patch('src.server.main.Simulator') as mock_sim_class, \
-             patch('src.server.main.sects_by_id', {}), \
-             patch('src.server.main.CONFIG') as mock_config:
+        with patch.object(game_loop, 'scan_avatar_assets'), \
+             patch.object(game_loop, 'load_cultivation_world_map') as mock_load_map, \
+             patch.object(game_loop, 'check_llm_connectivity', return_value=(False, "API key invalid")), \
+             patch('src.server.game_loop.World') as mock_world_class, \
+             patch('src.server.game_loop.Simulator') as mock_sim_class, \
+             patch('src.server.game_loop.sects_by_id', {}), \
+             patch('src.server.game_loop.CONFIG') as mock_config:
             
             mock_config.game.sect_num = 0
             mock_config.game.init_npc_num = 0
@@ -380,7 +380,7 @@ class TestInitGameAsync:
             mock_sim.step = AsyncMock()
             mock_sim_class.return_value = mock_sim
             
-            await main.init_game_async()
+            await game_loop.init_game_async()
             
             # Should still complete successfully.
             assert game_instance["init_status"] == "ready"
@@ -391,14 +391,14 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_calls_history_manager(self, reset_game_instance, mock_llm_managers):
         """Test initialization calls HistoryManager when history is present."""
-        with patch.object(main, 'scan_avatar_assets'), \
-             patch.object(main, 'load_cultivation_world_map') as mock_load_map, \
-             patch.object(main, 'check_llm_connectivity', return_value=(True, "")), \
-             patch('src.server.main.World') as mock_world_class, \
-             patch('src.server.main.Simulator') as mock_sim_class, \
-             patch('src.server.main.sects_by_id', {}), \
-             patch('src.server.main.CONFIG') as mock_config, \
-             patch('src.server.main.HistoryManager') as mock_history_class:
+        with patch.object(game_loop, 'scan_avatar_assets'), \
+             patch.object(game_loop, 'load_cultivation_world_map') as mock_load_map, \
+             patch.object(game_loop, 'check_llm_connectivity', return_value=(True, "")), \
+             patch('src.server.game_loop.World') as mock_world_class, \
+             patch('src.server.game_loop.Simulator') as mock_sim_class, \
+             patch('src.server.game_loop.sects_by_id', {}), \
+             patch('src.server.game_loop.CONFIG') as mock_config, \
+             patch('src.server.game_loop.HistoryManager') as mock_history_class:
             
             mock_config.game.sect_num = 0
             mock_config.game.init_npc_num = 0
@@ -423,7 +423,7 @@ class TestInitGameAsync:
             mock_history_mgr.apply_history_influence = AsyncMock()
             mock_history_class.return_value = mock_history_mgr
             
-            await main.init_game_async()
+            await game_loop.init_game_async()
             
             mock_history_class.assert_called_once_with(mock_world)
             mock_history_mgr.apply_history_influence.assert_called_once_with("Ancient times...")
@@ -431,13 +431,13 @@ class TestInitGameAsync:
     @pytest.mark.asyncio
     async def test_init_pauses_after_initial_events(self, reset_game_instance, mock_llm_managers):
         """Test game is paused after generating initial events."""
-        with patch.object(main, 'scan_avatar_assets'), \
-             patch.object(main, 'load_cultivation_world_map') as mock_load_map, \
-             patch.object(main, 'check_llm_connectivity', return_value=(True, "")), \
-             patch('src.server.main.World') as mock_world_class, \
-             patch('src.server.main.Simulator') as mock_sim_class, \
-             patch('src.server.main.sects_by_id', {}), \
-             patch('src.server.main.CONFIG') as mock_config:
+        with patch.object(game_loop, 'scan_avatar_assets'), \
+             patch.object(game_loop, 'load_cultivation_world_map') as mock_load_map, \
+             patch.object(game_loop, 'check_llm_connectivity', return_value=(True, "")), \
+             patch('src.server.game_loop.World') as mock_world_class, \
+             patch('src.server.game_loop.Simulator') as mock_sim_class, \
+             patch('src.server.game_loop.sects_by_id', {}), \
+             patch('src.server.game_loop.CONFIG') as mock_config:
             
             mock_config.game.sect_num = 0
             mock_config.game.init_npc_num = 0
@@ -452,7 +452,7 @@ class TestInitGameAsync:
             mock_sim.step = AsyncMock()
             mock_sim_class.return_value = mock_sim
             
-            await main.init_game_async()
+            await game_loop.init_game_async()
             
             # Game should be paused after initialization.
             assert game_instance["is_paused"] is True

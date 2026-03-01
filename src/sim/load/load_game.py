@@ -70,8 +70,8 @@ def apply_history_modifications(world, modifications):
                 if sect.name != old_name:
                     if old_name in sects_by_name: del sects_by_name[old_name]
                     sects_by_name[sect.name] = sect
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LoadGame] Warning: Failed to apply sect modification for id={sid_str}: {e}")
 
     # 2. 区域修改
     regions_mod = modifications.get("regions", {})
@@ -82,8 +82,8 @@ def apply_history_modifications(world, modifications):
             if region:
                 if "name" in changes: region.name = changes["name"]
                 if "desc" in changes: region.desc = changes["desc"]
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LoadGame] Warning: Failed to apply region modification for id={rid_str}: {e}")
 
     # 3. 功法修改
     techniques_mod = modifications.get("techniques", {})
@@ -98,8 +98,8 @@ def apply_history_modifications(world, modifications):
                 if tech.name != old_name:
                     if old_name in techniques_by_name: del techniques_by_name[old_name]
                     techniques_by_name[tech.name] = tech
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LoadGame] Warning: Failed to apply technique modification for id={tid_str}: {e}")
 
     # 4. 武器修改 (通过 ItemRegistry)
     weapons_mod = modifications.get("weapons", {})
@@ -115,8 +115,8 @@ def apply_history_modifications(world, modifications):
                 if item.name != old_name:
                     if old_name in weapons_by_name: del weapons_by_name[old_name]
                     weapons_by_name[item.name] = item
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LoadGame] Warning: Failed to apply weapon modification for id={iid_str}: {e}")
 
     # 5. 辅助装备修改 (通过 ItemRegistry)
     aux_mod = modifications.get("auxiliaries", {})
@@ -132,8 +132,8 @@ def apply_history_modifications(world, modifications):
                 if item.name != old_name:
                     if old_name in auxiliaries_by_name: del auxiliaries_by_name[old_name]
                     auxiliaries_by_name[item.name] = item
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LoadGame] Warning: Failed to apply auxiliary modification for id={iid_str}: {e}")
             
     print("历史差分回放完成。")
 

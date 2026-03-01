@@ -49,6 +49,7 @@ from fastapi.testclient import TestClient
 
 from src.server import main
 from src.server.main import app, game_instance, ConnectionManager
+from src.server.routes.game_state import _state_cache
 
 
 @pytest.fixture
@@ -75,7 +76,9 @@ def reset_game_instance():
         "llm_check_failed": False,
         "llm_error_message": "",
     })
+    _state_cache.invalidate()
     yield
+    _state_cache.invalidate()
     game_instance.clear()
     game_instance.update(original_state)
 
@@ -376,7 +379,7 @@ class TestStateAPI:
 
         game_instance["world"] = mock_world
 
-        with patch.object(main, 'resolve_avatar_pic_id', return_value=1):
+        with patch('src.server.routes.game_state.resolve_avatar_pic_id', return_value=1):
             response = client.get("/api/state")
 
         assert response.status_code == 200

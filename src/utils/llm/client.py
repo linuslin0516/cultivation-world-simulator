@@ -13,9 +13,13 @@ from .config import LLMMode, LLMConfig, get_task_mode
 from .parser import parse_json
 from .prompt import build_prompt, load_template
 from .exceptions import LLMError, ParseError
+from .circuit_breaker import CircuitBreaker
 
 # 模块级信号量，懒加载
 _SEMAPHORE: Optional[asyncio.Semaphore] = None
+
+# Circuit breaker for LLM service health
+_circuit_breaker = CircuitBreaker(failure_threshold=5, reset_timeout=60.0)
 
 
 def _get_semaphore() -> asyncio.Semaphore:
@@ -62,9 +66,11 @@ def _call_with_requests(config: LLMConfig, prompt: str) -> str:
             return result['choices'][0]['message']['content']
     except urllib.error.HTTPError as e:
         error_body = e.read().decode('utf-8')
-        raise Exception(f"LLM Request failed {e.code}: {error_body}")
+        raise LLMError(f"HTTP {e.code}: {error_body}") from e
+    except urllib.error.URLError as e:
+        raise LLMError(f"Connection error: {e.reason}") from e
     except Exception as e:
-        raise Exception(f"LLM Request failed: {str(e)}")
+        raise LLMError(f"Request failed: {str(e)}") from e
 
 
 async def call_llm(prompt: str, mode: LLMMode = LLMMode.NORMAL) -> str:
@@ -72,12 +78,20 @@ async def call_llm(prompt: str, mode: LLMMode = LLMMode.NORMAL) -> str:
     基础 LLM 调用，自动控制并发
     使用 urllib 直接调用 OpenAI 兼容接口
     """
+    if not _circuit_breaker.can_execute():
+        raise LLMError("LLM circuit breaker is OPEN -- service appears down. Will retry automatically.")
+
     config = LLMConfig.from_mode(mode)
     semaphore = _get_semaphore()
-    
-    async with semaphore:
-        result = await asyncio.to_thread(_call_with_requests, config, prompt)
-    
+
+    try:
+        async with semaphore:
+            result = await asyncio.to_thread(_call_with_requests, config, prompt)
+        _circuit_breaker.record_success()
+    except Exception:
+        _circuit_breaker.record_failure()
+        raise
+
     log_llm_call(config.model_name, prompt, result)
     return result
 

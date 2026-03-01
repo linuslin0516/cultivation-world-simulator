@@ -127,41 +127,48 @@ class Simulator:
     async def _phase_execute_actions(self):
         """
         执行阶段：推进当前动作，支持同月链式抢占即时结算，返回期间产生的事件。
-
-        TODO: 为单个角色的 tick_action() 添加 try-except 处理。
         """
         events = []
         MAX_LOCAL_ROUNDS = 3
-        
+        logger = get_logger().logger
+
         # Round 1: 全员执行一次
         avatars_needing_retry = set()
         for avatar in self.world.avatar_manager.get_living_avatars():
-            new_events = await avatar.tick_action()
-            if new_events:
-                events.extend(new_events)
-            
-            # 检查是否有新动作产生（抢占/连招），如果有则加入下一轮
-            # 注意：tick_action 内部已处理标记清除逻辑，仅当动作发生切换时才会保留 True
-            if getattr(avatar, "_new_action_set_this_step", False):
-                avatars_needing_retry.add(avatar)
+            try:
+                new_events = await avatar.tick_action()
+                if new_events:
+                    events.extend(new_events)
+
+                # 检查是否有新动作产生（抢占/连招），如果有则加入下一轮
+                if getattr(avatar, "_new_action_set_this_step", False):
+                    avatars_needing_retry.add(avatar)
+            except Exception as e:
+                logger.error(f"Avatar {avatar.name} (id={avatar.id}) tick_action failed: {e}", exc_info=True)
+                avatar.current_action = None
+                continue
 
         # Round 2+: 仅执行有新动作的角色，避免无辜角色重复执行
         round_count = 1
         while avatars_needing_retry and round_count < MAX_LOCAL_ROUNDS:
             current_avatars = list(avatars_needing_retry)
             avatars_needing_retry.clear()
-            
+
             for avatar in current_avatars:
-                new_events = await avatar.tick_action()
-                if new_events:
-                    events.extend(new_events)
-                
-                # 再次检查
-                if getattr(avatar, "_new_action_set_this_step", False):
-                    avatars_needing_retry.add(avatar)
-            
+                try:
+                    new_events = await avatar.tick_action()
+                    if new_events:
+                        events.extend(new_events)
+
+                    if getattr(avatar, "_new_action_set_this_step", False):
+                        avatars_needing_retry.add(avatar)
+                except Exception as e:
+                    logger.error(f"Avatar {avatar.name} (id={avatar.id}) tick_action failed in round {round_count+1}: {e}", exc_info=True)
+                    avatar.current_action = None
+                    continue
+
             round_count += 1
-            
+
         return events
 
     def _phase_resolve_death(self):
