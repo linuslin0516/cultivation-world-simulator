@@ -1,0 +1,10 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Railway injects $PORT; the CMD in Dockerfile uses ${PORT:-8002}
+healthcheckPath = "/api/init-status"
+healthcheckTimeout = 120
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
